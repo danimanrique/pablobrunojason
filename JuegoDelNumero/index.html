@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <title>Juego del Numero</title>
+
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Tangerine">
+    <link href='https://fonts.googleapis.com/css?family=Indie+Flower' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Indie+Flower|Open+Sans:400,600' rel='stylesheet' type='text/css'>
+
+    <style>
+        .button {
+            border-radius: 4px;
+
+            border: none;
+            color: #FFFFFF;
+            text-align: center;
+            font-size: 15px;
+            padding: 15px;
+            width: 120px;
+            transition: all 0.5s;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+
+        .button span:after {
+            content: '»';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -20px;
+            transition: 0.5s;
+        }
+
+        .button:hover span {
+            padding-right: 25px;
+        }
+
+        .button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+
+
+        .titulo{
+            font-family: 'Tangerine', cursive;
+            font-size: 100px;
+
+            color: #ff0005;
+            text-shadow: 2px 0 0 rgb(0, 0, 0);
+        }
+        .font{
+            font-family: 'Indie Flower';
+            font-size: 40px;
+        }
+        .inputFont{
+            font-family: 'Open Sans', sans-serif;
+            font-size: 20px;
+        }
+		.resultadosFont{
+		font-family: 'Open Sans', sans-serif;
+		 font-size: 20px;
+		}
+
+        th,td{padding-left: 25px;
+            padding-right: 25px;
+        }
+
+    </style>
+</head>
+
+<body style="text-align: center; background-image:url('recursos/fondo1.jpg'); ">
+
+<h1 class="titulo">El Juego del Número</h1>
+
+<button id="botonComenzar" style="display: inline; background-color: #24aaf4;" onclick="comienzaElJuego()" class="button">
+    <span>Comenzar</span>
+</button>
+
+
+<div id="bloqueDeJuego" style="display: none; text-align: center">
+    <button id="botonAbandonar" onclick="javascript:location.reload()" class="button" style=" background-color: #f45c41;"> <span>Abandonar</span></button>
+    <br>
+    <div>
+        <table>
+            <tr>
+                <td id="tdGif">
+                    <img id="imgGif" src="recursos/chicoPiensa.gif">
+                </td>
+                <td id="tdOperacion">
+                    <br>
+                    <a class="font">Adivine el número:</a>
+                    <br>
+                    <input  id="cajaDeTextoNumeroJugado" type="text" onkeydown="operarEntrada(event)" style="text-align: center" class="inputFont">
+                    <br>
+                    <br>
+                </td>
+            </tr>
+        </table>
+
+<div id="divResultados" class="resultadosFont">
+
+</div>
+    </div>
+
+
+
+
+</div>
+
+</body>
+
+<script type="text/javascript">
+    var numeroGanador= 0,cantidadNumerosIngresados= 0,cantIntentos=0;
+
+    function comienzaElJuego() {
+        cantidadNumerosIngresados= 0;
+        cantIntentos=0;
+        numeroGanador = devolverNumeroAleatorio(10000, 1000);
+        console.log(numeroGanador);
+        (document).getElementById("botonComenzar").style.display = "none";
+        (document).getElementById("bloqueDeJuego").style.display = "inline-block";
+        (document).getElementById("cajaDeTextoNumeroJugado").value="";
+        (document).getElementById("cajaDeTextoNumeroJugado").focus();
+
+    }
+
+    function operarEntrada(event) {
+
+        var numeroJugado;
+
+        ////console.log("ascii de tecla:" + event.keyCode);
+
+        if (esEnter(event)) {
+            if (cantidadNumerosIngresados == 4) {
+                numeroJugado = document.getElementById("cajaDeTextoNumeroJugado").value;
+                cantIntentos++;
+                var evaluacion = evaluarNumeroJugado(numeroJugado);
+
+                generarResultadosDeEvaluacion(numeroJugado,evaluacion);
+
+            } else
+            {
+               // //console.log("Enter en mal posicion");
+                event.preventDefault();
+            }
+        } else {
+            if (esRetroceso(event)) {
+                if (cantidadNumerosIngresados > 0) {
+                    cantidadNumerosIngresados--;
+                    //console.log("retroceso con resta:" + cantidadNumerosIngresados);
+                }else 
+				{ //console.log("Retroceso inadecuado:" + cantidadNumerosIngresados); 
+				event.preventDefault();
+				}
+            } else {
+                if (verificarEntradaTeclado(event, /^[0-9]+$/) && cantidadNumerosIngresados <4) {
+                    cantidadNumerosIngresados++;
+
+                    if (cantidadNumerosIngresados == 1 && esCero(event)) {
+
+                        cantidadNumerosIngresados--;
+                        event.preventDefault();
+                    }
+                } else event.preventDefault();
+            }
+            //console.log("cantidad ingresados:" +cantidadNumerosIngresados);
+
+        }
+
+
+    }
+
+    function generarResultadosDeEvaluacion(numeroJugado,evaluacion){
+
+        if (evaluacion[0]==4)
+        {
+            document.getElementById("divResultados").innerHTML="";
+           document.getElementById("imgGif").src="recursos/chicoAlegre.gif";
+            document.getElementById("tdOperacion").innerHTML=" <a class='font'>Felicitaciones! <br> Adivinaste el número mágico: <b>"+ numeroGanador + "</b> en " + cantIntentos + " intentos</a> ";
+       document.getElementById("botonAbandonar").innerHTML="Volver";
+            document.getElementById("botonAbandonar").style.background="green"
+
+        }
+        else{
+            var resultados=document.getElementById("divResultados");
+            resultados.innerHTML+= "<br> <a style='color:green'>" + numeroJugado + "</a> - " + evaluacion[0] + " Bien, " + evaluacion[1] +" Regular, " + evaluacion[2]+" Mal " + "</a> "
+              document.getElementById("cajaDeTextoNumeroJugado").value = "";
+	   }
+
+        cantidadNumerosIngresados = 0;
+
+    }
+
+    function a() {
+        if(cantidadNumerosIngresados<4){
+            if (verificarEntradaTeclado(event, /^[0-9]+$/)) {
+
+                cantidadNumerosIngresados++;
+
+                if (cantidadNumerosIngresados == 1) {
+                    event.returnValue = !esCero(event);
+                }
+               // //console.log("numeros ingresados:" + cantidadNumerosIngresados);
+            } else {
+                if (!esRetroceso(event)) {
+
+                    event.preventDefault();
+
+                }else if(cantidadNumerosIngresados>0) cantidadNumerosIngresados--;
+
+             //   //console.log("numeros ingresados:" + cantidadNumerosIngresados);
+            }
+        }else {
+            if (esEnter(event)){
+                numeroJugado = document.getElementById("cajaDeTextoNumeroJugado").value;
+                var evaluacion = evaluarNumeroJugado(numeroJugado);
+
+                document.getElementById("cajaDeTextoNumeroJugado").value="";
+
+                cantidadNumerosIngresados=0;
+            } if (!esRetroceso(event)) {
+                event.preventDefault();
+            }else cantidadNumerosIngresados--;
+          //  //console.log("numeros ingresados:" + cantidadNumerosIngresados);
+        }
+    }
+
+    function esEnter(e){ return (13 == e.keyCode)}
+
+    function esCero(e){ return (48 == e.keyCode)}
+
+    function esRetroceso(e){  return (8 == e.keyCode)  }
+
+    function verificarEntradaTeclado(e,expresionRegular) {
+        var caracter =String.fromCharCode(e.keyCode);
+      //  //console.log("caracter " + caracter);
+        return (expresionRegular.test(caracter));
+
+
+    }
+
+    function devolverNumeroAleatorio(max, min) {
+        return Math.floor(Math.random() * (max - min)) + min;
+    }
+
+    function evaluarNumeroJugado(numeroJugado)
+    {
+        var numeroAEvaluar=numeroJugado.toString();
+        var ganador=numeroGanador.toString();
+       // //console.log("numero ganador:" + ganador + "  numero jugado:" + numeroJugado);
+        var cantidadesEvaluadas=contarBienMalRegular(numeroAEvaluar,ganador);
+return cantidadesEvaluadas;
+    }
+
+    function contarBienMalRegular(numeroAEvaluar,ganador){
+        var bien= 0,mal= 0,regular=0;
+
+        if (numeroAEvaluar.localeCompare(ganador) != 0) {
+            var posicionChar;
+            for (var i = 0; i < 4; i++) {
+                posicionChar = ganador.indexOf(numeroAEvaluar.charAt(i));
+
+                if (posicionChar != -1) {
+                    if (posicionChar == i) bien++
+                    else regular++;
+                } else {
+                    mal++;
+                }
+
+            }
+        } else {
+            bien = 4;
+        }
+        ////console.log("bien:" + bien + " regular:" + regular + " mal:" + mal);
+        return [bien,regular,mal];
+    }
+</script>
+</html>
