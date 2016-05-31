@@ -44,6 +44,7 @@ var explosion;
 var miradaJugador
 var personaje, vidaJugador, bullets;
 var teclaD, teclaA, teclaE;
+var objetivo;
 
 function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -87,11 +88,16 @@ function create() {
     explosion.body.collideWorldBounds = true;
 
 
-    personaje = game.add.sprite(10, 1180, 'personaje');
-    personaje.animations.add('runLeft', [7, 6, 5, 4, 3, 2, 1, 0]);
-    personaje.animations.add('runRight', [8, 9, 10, 11, 12, 13, 14, 15]);
-    game.physics.enable(personaje, Phaser.Physics.ARCADE);
-    personaje.body.collideWorldBounds = true;
+    //objetivo = new Behavior_Mouse(game, 1000, 1180, 'personaje', 3, null);
+    personaje = new Behavior_Cursor(game,10,1180,'personaje',3,null)
+    //personaje = game.add.sprite(10, 1180, 'personaje');
+    personaje.sprite.animations.add('runLeft', [7, 6, 5, 4, 3, 2, 1, 0]);
+    personaje.sprite.animations.add('runRight', [8, 9, 10, 11, 12, 13, 14, 15]);
+    game.physics.enable(personaje.sprite, Phaser.Physics.ARCADE);
+    personaje.sprite.body.collideWorldBounds = true;
+    objetivo = new Behavior_Seek(game, 10 ,1180, 'personaje', 3 ,personaje);
+    objetivo.sprite.body.collideWorldBounds = true;
+    game.physics.enable(objetivo.sprite, Phaser.Physics.ARCADE);
 
 //
     // game.time.events.repeat(Phaser.Timer.SECOND, 20, resurrect, this);
@@ -112,13 +118,14 @@ function create() {
     //  lluvia.callAll('animations.add', 'animations', 'colision',[16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34]);
     //lluvia.callAll('animations.play', 'animations', 'colision',10,false);
     
-    game.physics.enable(personaje, Phaser.Physics.ARCADE);
+    game.physics.enable(personaje.sprite, Phaser.Physics.ARCADE);
+    game.physics.enable(objetivo.sprite, Phaser.Physics.ARCADE);
 
     miradaNave = 'right';
     miradaJugador = 'right';
 
     estadoJugador = true;
-    game.camera.follow(personaje, Phaser.Camera.FOLLOW_TOPDOWN);
+    game.camera.follow(personaje.sprite,Phaser.Camera.FOLLOW_TOPDOWN);
 
     cursors = game.input.keyboard.createCursorKeys();
     spaceBar = game.input.keyboard.addKey(Phaser.KeyCode.SPACEBAR);
@@ -131,16 +138,22 @@ function update() {
 
 
     game.physics.arcade.collide(nave, layer);
-    game.physics.arcade.collide(personaje, layer);
+    game.physics.arcade.collide(personaje.sprite, layer);
+    game.physics.arcade.collide(objetivo.sprite, layer);
 
-    game.physics.arcade.overlap(personaje, explosion, entrarPortal, null, this);
-    game.physics.arcade.overlap(personaje, portal, activarPortal, null, this);
+    game.physics.arcade.overlap(personaje.sprite, explosion, entrarPortal, null, this);
+    game.physics.arcade.overlap(personaje.sprite, portal, activarPortal, null, this);
 
-    game.physics.arcade.overlap(personaje, nave, changeState, null, this);
+    game.physics.arcade.overlap(personaje.sprite, nave, changeState, null, this);
     // game.physics.arcade.overlap(lluvia,layer,'colisionarLluvia',null,this);
+    
+    game.physics.arcade.overlap(objetivo.sprite, explosion, entrarPortal, null, this);
+    game.physics.arcade.overlap(objetivo.sprite, portal, activarPortal, null, this);
 
-    personaje.body.velocity.x = 0;
-    personaje.body.velocity.y = 0;
+    game.physics.arcade.overlap(objetivo.sprite, nave, changeState, null, this);
+
+    personaje.sprite.body.velocity.x = 0;
+    personaje.sprite.body.velocity.y = 0;
     nave.body.velocity.x = 0;
     nave.body.velocity.y = 0;
 
@@ -150,7 +163,8 @@ function update() {
     } else {
         controlNave();
     }
-
+    objetivo.update();
+    //personaje.update();
 
 }
 
@@ -189,41 +203,41 @@ function controlJugador() {
     if (teclaD.isDown) {
         if (miradaJugador == 'left') {
             // personaje.animations.play('dispararLeft', 2, true);
-            personaje.frame = 22;
+            personaje.sprite.frame = 22;
             //   fireBullet();
         } else
         //personaje.animations.play('dispararRight', 2, true);
-            personaje.frame = 17;
+            personaje.sprite.frame = 17;
         // fireBullet();
     } else {
 
         if (cursors.up.isDown) {
-            personaje.body.velocity.y = -400;
+            personaje.sprite.body.velocity.y = -400;
             //personaje.animations.stop();
         }
         else if (cursors.down.isDown) {
-            personaje.body.velocity.y = 400;
+            personaje.sprite.body.velocity.y = 400;
             //personaje.animations.stop();
         } //else {
         if (cursors.left.isDown) {
-            personaje.body.velocity.x = -400;
+            personaje.sprite.body.velocity.x = -400;
             if (miradaJugador != 'left') {
                 // personaje.animation.stop();
-                personaje.animations.play('runLeft', 8, true);
+                personaje.sprite.animations.play('runLeft', 8, true);
                 miradaJugador = 'left';
-            } else personaje.animations.play('runLeft', 8, true);
+            } else personaje.sprite.animations.play('runLeft', 8, true);
         } else if (cursors.right.isDown) {
-            personaje.body.velocity.x = 400;
+            personaje.sprite.body.velocity.x = 400;
             if (miradaJugador != 'right') {
                 //  personaje.animation.stop();
-                personaje.animations.play('runRight', 8, true);
+                personaje.sprite.animations.play('runRight', 8, true);
                 miradaJugador = 'right';
-            } else   personaje.animations.play('runRight', 8, true);
+            } else   personaje.sprite.animations.play('runRight', 8, true);
 
         } else {
             if (miradaJugador == 'left') {
-                personaje.frame = 23;
-            } else personaje.frame = 16;
+                personaje.sprite.frame = 23;
+            } else personaje.sprite.frame = 16;
             //personaje.animations.stop();
         }
         //}
